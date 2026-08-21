@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -6,6 +7,17 @@ namespace TW.DataPersistence
 	[DisallowMultipleComponent]
 	public class ObjectPersistenceController : PersistBase
 	{
+		/// <summary>
+		/// Registers PersistentObject if initially inactive.
+		/// </summary>
+		[SerializeField] private List<PersistentObject> inactiveRegistry = new();
+		private void Awake()
+		{
+			foreach (var item in inactiveRegistry)
+			{
+				ObjectPersistenceManager.Instance.Register(item);
+			}
+		}
 		public void Save()
 		{
 			string path = Path.Combine(Application.dataPath, "test.json");
@@ -35,6 +47,7 @@ namespace TW.DataPersistence
 		{
 			return ObjectPersistenceManager.Instance.SerializeAll();
 		}
+
 	}
 }
 

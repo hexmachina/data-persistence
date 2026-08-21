@@ -17,8 +17,6 @@ namespace TW.DataPersistence
 	public class PersistentObject : MonoBehaviour, ISerializationCallbackReceiver
 	{
 
-		//[SerializeField, NonReorderable] private List<Object> _trackedComponents = new();
-
 		private ComponentsTracker _componentTracker;
 
 		// System guid we use for comparison and generation
@@ -29,15 +27,24 @@ namespace TW.DataPersistence
 		[SerializeField]
 		private byte[] serializedGuid;
 
-		//public IReadOnlyList<Object> TrackedComponents => _trackedComponents;
+		public ComponentsTracker ComponentsTracker
+		{
+			get
+			{
+				if (_componentTracker == null)
+				{
+					TryGetComponent(out _componentTracker);
+				}
+				return _componentTracker;
+			}
+		}
 
-		public IReadOnlyDictionary<int, Object> TrackedComponents => _componentTracker.Tracked;
+		public IReadOnlyDictionary<int, Object> TrackedComponents => ComponentsTracker.Tracked;
 
 		public System.Guid GUID => guid;
 
 		private void Awake()
 		{
-			TryGetComponent(out _componentTracker);
 			CreateGuid();
 			ObjectPersistenceManager.Instance.Register(this);
 		}
