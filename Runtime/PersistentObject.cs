@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace TW.DataPersistence
@@ -94,7 +92,7 @@ namespace TW.DataPersistence
 				{
 					return;
 				}
-				Undo.RecordObject(this, "Added GUID");
+				UnityEditor.Undo.RecordObject(this, "Added GUID");
 #endif
 				guid = System.Guid.NewGuid();
 				serializedGuid = guid.ToByteArray();
@@ -102,9 +100,9 @@ namespace TW.DataPersistence
 #if UNITY_EDITOR
 				// If we are creating a new GUID for a prefab instance of a prefab, but we have somehow lost our prefab connection
 				// force a save of the modified prefab instance properties
-				if (PrefabUtility.IsPartOfNonAssetPrefabInstance(this))
+				if (UnityEditor.PrefabUtility.IsPartOfNonAssetPrefabInstance(this))
 				{
-					PrefabUtility.RecordPrefabInstancePropertyModifications(this);
+					UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(this);
 				}
 #endif
 			}
@@ -130,7 +128,7 @@ namespace TW.DataPersistence
 #if UNITY_EDITOR
 		private bool IsEditingInPrefabMode()
 		{
-			if (EditorUtility.IsPersistent(this))
+			if (UnityEditor.EditorUtility.IsPersistent(this))
 			{
 				// if the game object is stored on disk, it is a prefab of some kind, despite not returning true for IsPartOfPrefabAsset =/
 				return true;
@@ -138,11 +136,11 @@ namespace TW.DataPersistence
 			else
 			{
 				// If the GameObject is not persistent let's determine which stage we are in first because getting Prefab info depends on it
-				var mainStage = StageUtility.GetMainStageHandle();
-				var currentStage = StageUtility.GetStageHandle(gameObject);
+				var mainStage = UnityEditor.SceneManagement.StageUtility.GetMainStageHandle();
+				var currentStage = UnityEditor.SceneManagement.StageUtility.GetStageHandle(gameObject);
 				if (currentStage != mainStage)
 				{
-					var prefabStage = PrefabStageUtility.GetPrefabStage(gameObject);
+					var prefabStage = UnityEditor.SceneManagement.PrefabStageUtility.GetPrefabStage(gameObject);
 					if (prefabStage != null)
 					{
 						return true;
@@ -155,7 +153,7 @@ namespace TW.DataPersistence
 		private bool IsAssetOnDisk()
 		{
 
-			return PrefabUtility.IsPartOfPrefabAsset(this) || IsEditingInPrefabMode();
+			return UnityEditor.PrefabUtility.IsPartOfPrefabAsset(this) || IsEditingInPrefabMode();
 
 		}
 #endif
