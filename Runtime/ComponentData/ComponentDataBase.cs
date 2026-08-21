@@ -11,6 +11,7 @@ namespace TW.DataPersistence
 		}
 	}
 
+	[Serializable]
 	public abstract class ComponentDataBase : ObjectDataBase
 	{
 		public int componentIndex;
@@ -18,6 +19,7 @@ namespace TW.DataPersistence
 	}
 
 
+	[Serializable]
 	public abstract class MonoBehaviourDataBase : ComponentDataBase
 	{
 		public bool enabled;

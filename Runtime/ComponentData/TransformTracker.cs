@@ -3,7 +3,7 @@
 namespace TW.DataPersistence
 {
 	[System.Serializable]
-	public class TranformData : ComponentDataBase
+	public class TransformData : ComponentDataBase
 	{
 		public Vector3 position;
 		public Quaternion rotation;
@@ -11,11 +11,11 @@ namespace TW.DataPersistence
 
 	}
 
-	public class TransformTracker : ComponentTrackerBase<Transform, TranformData>
+	public class TransformTracker : ComponentTrackerBase<Transform, TransformData>
 	{
-		protected override TranformData Store(Transform component)
+		protected override TransformData Store(Transform component)
 		{
-			var data = new TranformData
+			var data = new TransformData
 			{
 				componentIndex = component.GetComponentIndex(),
 				position = component.position,
@@ -24,7 +24,7 @@ namespace TW.DataPersistence
 			};
 			return data;
 		}
-		protected override void Apply(TranformData data, Transform component)
+		protected override void Apply(TransformData data, Transform component)
 		{
 			if (component.TryGetComponent(out Rigidbody rb))
 			{

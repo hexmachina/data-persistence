@@ -4,7 +4,7 @@ using UnityEngine;
 namespace TW.DataPersistence
 {
 	[DisallowMultipleComponent]
-	public class ObjectPersistenceController : MonoBehaviour
+	public class ObjectPersistenceController : PersistBase
 	{
 		public void Save()
 		{
@@ -24,6 +24,16 @@ namespace TW.DataPersistence
 			}
 			string jsonData = File.ReadAllText(path);
 			ObjectPersistenceManager.Instance.DeserializeAll(jsonData);
+		}
+
+		public override void ReceiveData(string data)
+		{
+			ObjectPersistenceManager.Instance.DeserializeAll(data);
+		}
+
+		public override string SendData()
+		{
+			return ObjectPersistenceManager.Instance.SerializeAll();
 		}
 	}
 }

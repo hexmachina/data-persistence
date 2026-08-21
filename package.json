@@ -1,0 +1,11 @@
+{
+    "name": "com.tw.data-persistence",
+    "version": "1.0.0",
+    "unity": "6000.0",
+    "displayName": "TW Data Persistence",
+    "description": "Save and load game state",
+    "author": {
+        "name": "Tom Wilhelm",
+        "url": "https://www.tom-wilhelm.com"
+    }
+}

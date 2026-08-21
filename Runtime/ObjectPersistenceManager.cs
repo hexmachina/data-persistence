@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -21,9 +22,11 @@ namespace TW.DataPersistence
 			}
 		}
 
-		private Dictionary<System.Guid, PersistentObject> _persistMap = new();
+		public static bool IsInstantiated => _instance != null;
 
-		public Dictionary<Type, ObjectTrackerBase> trackers = new();
+		private readonly Dictionary<System.Guid, PersistentObject> _persistMap = new();
+
+		private readonly Dictionary<Type, ObjectTrackerBase> _trackers = new();
 
 		public ObjectPersistenceManager()
 		{
@@ -40,6 +43,14 @@ namespace TW.DataPersistence
 			_persistMap[persistence.GUID] = persistence;
 		}
 
+		public void Unregister(PersistentObject persistence)
+		{
+			if (_persistMap.ContainsKey(persistence.GUID))
+			{
+				_persistMap.Remove(persistence.GUID);
+			}
+		}
+
 		private void RegisterTrackers()
 		{
 
@@ -47,7 +58,7 @@ namespace TW.DataPersistence
 			foreach (var type in trackerTypes)
 			{
 				var genericArg = ReflectionHelpers.GetFirstGenericArgument(type, typeof(ObjectTrackerBase));
-				if (genericArg == null || trackers.ContainsKey(genericArg))
+				if (genericArg == null || _trackers.ContainsKey(genericArg))
 				{
 					continue;
 				}
@@ -57,7 +68,7 @@ namespace TW.DataPersistence
 				{
 					continue;
 				}
-				trackers[genericArg] = trackerInstance;
+				_trackers[genericArg] = trackerInstance;
 			}
 		}
 
@@ -70,7 +81,7 @@ namespace TW.DataPersistence
 				{
 					container.data.Add(Serialize(target));
 				}
-				json = JsonUtility.ToJson(container, false);
+				json = JsonConvert.SerializeObject(container);
 			}
 
 			return json;
@@ -82,19 +93,20 @@ namespace TW.DataPersistence
 			using (var data = new ObjectPersistenceData
 			{
 				guid = persistence.GUID.ToString(),
-				address = persistence.AddressableName,
-				components = new()
+				componentsMap = new()
+
 			})
 			{
-				foreach (var component in persistence.TrackedComponents)
+				foreach (var (id, component) in persistence.TrackedComponents)
 				{
 					var type = component.GetType();
-					if (trackers.ContainsKey(type))
+					if (!_trackers.ContainsKey(type))
 					{
-						data.components.Add(trackers[type].OnSerialize(component));
+						continue;
 					}
+					data.componentsMap[id] = _trackers[type].OnSerialize(component);
 				}
-				json = JsonUtility.ToJson(data, false);
+				json = JsonConvert.SerializeObject(data);
 			}
 
 			return json;
@@ -102,7 +114,7 @@ namespace TW.DataPersistence
 
 		public void DeserializeAll(string json)
 		{
-			var dataList = JsonUtility.FromJson<PersistenceContainer>(json);
+			var dataList = JsonConvert.DeserializeObject<PersistenceContainer>(json);
 			foreach (var data in dataList.data)
 			{
 				Deserialize(data);
@@ -111,7 +123,7 @@ namespace TW.DataPersistence
 
 		public void Deserialize(string json)
 		{
-			var data = JsonUtility.FromJson<ObjectPersistenceData>(json);
+			var data = JsonConvert.DeserializeObject<ObjectPersistenceData>(json);
 			var guid = new System.Guid(data.guid);
 			if (!_persistMap.ContainsKey(guid))
 			{
@@ -119,15 +131,20 @@ namespace TW.DataPersistence
 				return;
 			}
 			var target = _persistMap[guid];
-
-			for (int i = 0; i < target.TrackedComponents.Count; i++)
+			foreach (var (key, value) in data.componentsMap)
 			{
-				var component = target.TrackedComponents[i];
-				var type = component.GetType();
-				if (trackers.ContainsKey(type) && i < data.components.Count)
+				if (!target.TrackedComponents.TryGetValue(key, out var component))
 				{
-					trackers[type].OnDeserialize(data.components[i], target.gameObject);
+					continue;
 				}
+				var type = component.GetType();
+				if (!_trackers.ContainsKey(type))
+				{
+					Debug.LogWarning($"{type.Name} is not a tracked type.");
+					continue;
+				}
+				_trackers[type].OnDeserialize(value, target.gameObject);
+
 			}
 		}
 	}

@@ -10,17 +10,16 @@ namespace TW.DataPersistence
 	public class ObjectPersistenceData : ObjectDataBase
 	{
 		public string guid;
-		public string address;
-		public List<string> components = new();
+		public Dictionary<int, string> componentsMap = new();
 	}
 
-	[ExecuteInEditMode, DisallowMultipleComponent]
+	[ExecuteInEditMode, DisallowMultipleComponent, RequireComponent(typeof(ComponentsTracker))]
 	public class PersistentObject : MonoBehaviour, ISerializationCallbackReceiver
 	{
-		//[SerializeField] private SerializableGUID guid = new(1, 0);
-		[SerializeField] private string _addressableName;
-		[SerializeField] private bool _isSceneObject = false;
-		[SerializeField] private List<Object> _trackedComponents = new();
+
+		//[SerializeField, NonReorderable] private List<Object> _trackedComponents = new();
+
+		private ComponentsTracker _componentTracker;
 
 		// System guid we use for comparison and generation
 		System.Guid guid = System.Guid.Empty;
@@ -30,15 +29,27 @@ namespace TW.DataPersistence
 		[SerializeField]
 		private byte[] serializedGuid;
 
-		public string AddressableName => _addressableName;
-		public IReadOnlyList<Object> TrackedComponents => _trackedComponents;
+		//public IReadOnlyList<Object> TrackedComponents => _trackedComponents;
+
+		public IReadOnlyDictionary<int, Object> TrackedComponents => _componentTracker.Tracked;
 
 		public System.Guid GUID => guid;
 
 		private void Awake()
 		{
+			TryGetComponent(out _componentTracker);
 			CreateGuid();
 			ObjectPersistenceManager.Instance.Register(this);
+		}
+
+		private void OnDestroy()
+		{
+			if (!ObjectPersistenceManager.IsInstantiated)
+			{
+				return;
+			}
+			ObjectPersistenceManager.Instance.Unregister(this);
+
 		}
 
 #if UNITY_EDITOR
