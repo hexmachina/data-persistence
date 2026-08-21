@@ -40,6 +40,10 @@ namespace TW.DataPersistence
 
 		public override void ReceiveData(string data)
 		{
+			if (data == null)
+			{
+				return;
+			}
 			ObjectPersistenceManager.Instance.DeserializeAll(data);
 		}
 
