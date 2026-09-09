@@ -38,11 +38,14 @@ namespace TW.DataPersistence
 			if (_persistMap.ContainsKey(persistence.GUID))
 			{
 				var source = _persistMap[persistence.GUID];
-				if (source != persistence)
+				if (source != null)
 				{
-					Debug.LogWarning($"ObjectPersistence ${persistence.name} and ${source.name} have the same GUID {persistence.GUID}", persistence);
+					if (source != persistence)
+					{
+						Debug.LogWarning($"ObjectPersistence ${persistence.name} and ${source.name} have the same GUID {persistence.GUID}", persistence);
+					}
+					return;
 				}
-				return;
 			}
 			_persistMap[persistence.GUID] = persistence;
 		}

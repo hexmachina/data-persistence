@@ -52,6 +52,18 @@ namespace TW.DataPersistence
 			return ObjectPersistenceManager.Instance.SerializeAll();
 		}
 
+		private void OnDestroy()
+		{
+			if (!ObjectPersistenceManager.IsInstantiated)
+			{
+				return;
+			}
+			foreach (var item in inactiveRegistry)
+			{
+				ObjectPersistenceManager.Instance.Unregister(item);
+			}
+		}
+
 	}
 }
 
